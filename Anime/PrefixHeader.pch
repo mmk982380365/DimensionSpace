@@ -27,6 +27,7 @@
 #import <BmobObject.h>
 #import <BmobObject+Subclass.h>
 #import <TencentOpenAPI.framework/Headers/TencentOAuth.h>
+#import <ReactiveCocoa.h>
 #define  WIDTH self.view.frame.size.width
 #define  HEIGHT self.view.frame.size.height
 #define KScreenWidth [UIScreen mainScreen].bounds.size.width

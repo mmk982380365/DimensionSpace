@@ -10,6 +10,8 @@
 
 @interface MessageLoginViewController ()
 
+-(void)login:(void (^)(BOOL isSuccessful,BmobUser *user,NSError *error))block;
+
 @end
 
 @implementation MessageLoginViewController
@@ -58,21 +60,20 @@
     self.sendBtn=[UIButton buttonWithType:UIButtonTypeCustom];
     self.sendBtn.frame=CGRectMake(WIDTH*0.64, HEIGHT*0.2398801, WIDTH*0.3066666667, HEIGHT*0.02998501*2);
     [self.sendBtn setTitle:@"获取验证码" forState:UIControlStateNormal];
-    self.sendBtn.backgroundColor=[UIColor blueColor];
+//    self.sendBtn.backgroundColor=[UIColor blueColor];
     [self.sendBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.sendBtn.layer setCornerRadius:10];
     [self.sendBtn.layer setMasksToBounds:YES];
-    [self.sendBtn addTarget:self action:@selector(send) forControlEvents:UIControlEventTouchUpInside];
+//    [self.sendBtn addTarget:self action:@selector(send) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.sendBtn];
     
     //登陆按钮
     self.loginBtn=[UIButton buttonWithType:UIButtonTypeRoundedRect];
     self.loginBtn.frame=CGRectMake(WIDTH*0.053333333, HEIGHT*0.35980090, WIDTH*0.893333333, HEIGHT*0.02998501*2);
     [self.loginBtn setTitle:@"登 录" forState:UIControlStateNormal];
-    self.loginBtn.backgroundColor=[UIColor blueColor];
+    
     [self.loginBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.loginBtn.layer setCornerRadius:10];
-    [self.loginBtn addTarget:self action:@selector(denglu) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.loginBtn];
     
     //设置服务密码登陆按钮下划线
@@ -109,24 +110,74 @@
     UIImageView *image=[[UIImageView alloc] initWithFrame:CGRectMake(0, HEIGHT*0.44977511+HEIGHT*0.0599701, 1.2*WIDTH, HEIGHT-HEIGHT*0.44977511-HEIGHT*0.0599701)];
     image.image=[UIImage imageNamed:@"bgImage"];
     [self.view addSubview:image];
-}
-//发送验证码的方法
--(void)send{
-    //请求验证码
-    [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:self.phoneNumberTxt.text andTemplate:nil resultBlock:^(int number, NSError *error) {
-        if(error){
-
-        } else {
-
+    
+    RACSignal *phoneNumberSignal = [self.phoneNumberTxt.rac_textSignal map:^id(id value) {
+        return @([value length] == 11 ? YES : NO);
+    }];
+    
+    [phoneNumberSignal subscribeNext:^(id x) {
+        if ([x boolValue]) {
+            self.sendBtn.backgroundColor=[UIColor blueColor];
+            self.sendBtn.enabled = YES;
+        }else{
+            self.sendBtn.backgroundColor=[UIColor grayColor];
+            self.sendBtn.enabled = NO;
         }
     }];
-    self.timer =[NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(daojishi) userInfo:nil repeats:YES];
-    [self.sendBtn setTitle:@"已发送 60s" forState:UIControlStateNormal];
-    [self.sendBtn setEnabled:NO];
-    [self.sendBtn setBackgroundColor:[UIColor grayColor]];
-    [self.sendBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.sendBtn setAlpha:0.7];
-    self.time =60;
+    
+    RACSignal *smsSignal = [self.smsCodeTextField.rac_textSignal map:^id(id value) {
+        return @([value length] == 6 ? YES : NO);
+    }];
+    
+    RACSignal *loginValidSignal = [RACSignal combineLatest:@[phoneNumberSignal,smsSignal] reduce:^id(NSNumber *phoneValid,NSNumber *smsValid){
+        return @([phoneValid boolValue] && [smsValid boolValue]);
+    }];
+    
+    [loginValidSignal subscribeNext:^(id x) {
+        if ([x boolValue]) {
+            self.loginBtn.backgroundColor=[UIColor blueColor];
+            self.loginBtn.enabled = YES;
+        }else{
+            self.loginBtn.backgroundColor=[UIColor grayColor];
+            self.loginBtn.enabled = NO;
+        }
+    }];
+    
+    [[self.sendBtn rac_signalForControlEvents:UIControlEventTouchUpInside] subscribeNext:^(id x) {
+        //请求验证码
+//        [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:self.phoneNumberTxt.text andTemplate:nil resultBlock:^(int number, NSError *error) {
+//            if(error){
+//                
+//            } else {
+//                
+//            }
+//        }];
+        self.timer =[NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(daojishi) userInfo:nil repeats:YES];
+        
+        [self.sendBtn setTitle:@"已发送 60s" forState:UIControlStateNormal];
+        [self.sendBtn setEnabled:NO];
+        [self.sendBtn setBackgroundColor:[UIColor grayColor]];
+        [self.sendBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.sendBtn setAlpha:0.7];
+        self.time =60;
+    }];
+    
+}
+
+-(void)clickLogin{
+    @weakify(self)
+    [[[[[self.loginBtn rac_signalForControlEvents:UIControlEventTouchUpInside] doNext:^(id x) {
+        
+    }] flattenMap:^RACStream *(id value) {
+        return [self loginSignal];
+    }] deliverOnMainThread] subscribeNext:^(BmobUser *user) {
+        [self.navigationController popViewControllerAnimated:YES];
+    } error:^(NSError *error) {
+        @strongify(self);
+        
+        NSLog(@"%@",error);
+        [self clickLogin];
+    }];
 }
 
 //验证码倒计时
@@ -144,60 +195,53 @@
         [self.timer invalidate];
     }
 }
-
-//短信登录的方法
--(void)denglu{
-    //判断手机号和验证码不能为空
-    if (self.phoneNumberTxt.text.length==0||self.smsCodeTextField.text.length==0)
-    {
-        UIAlertView *alert =[[UIAlertView alloc] initWithTitle:@"提示" message:@"手机号或验证码不能为空" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
-        [alert show];
-    }
-    else
-    {
-        //判断输入手机号是否为11位数字
-        NSString *str =self.phoneNumberTxt.text;
-        NSString *regex =@"[0-9]{11}";
-        NSPredicate *predicate =[NSPredicate predicateWithFormat:@"SELF MATCHES %@",regex];
-        if (self.phoneNumberTxt.text.length!=0&&![predicate evaluateWithObject:str])
-        {
-            UIAlertView *alert =[[UIAlertView alloc] initWithTitle:@"提示" message:@"您输入的手机号格式错误,请重新输入" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
-            [alert show];
-        }
-        else
-        {
-            //查询手机号是否已存在
-            BmobQuery *query =[BmobUser query];
-            [query whereKey:@"mobilePhoneNumber" equalTo:self.phoneNumberTxt.text];
-            [query findObjectsInBackgroundWithBlock:^(NSArray *array, NSError *error)
-             {
-                 if (array.count==0)
-                 {
-                     UIAlertView *alert =[[UIAlertView alloc] initWithTitle:@"提示" message:@"您输入的账号尚未注册,请点击上方注册按钮" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
-                     [alert show];
-                     
-                 }
-                 else if(array.count>0)
-                 {
-                     [BmobUser loginInbackgroundWithMobilePhoneNumber:self.phoneNumberTxt.text andSMSCode:self.smsCodeTextField.text block:^(BmobUser *user, NSError *error)
-                      {
-                          if (user)
-                          {
-                              //进入首页
-                              [self.navigationController popViewControllerAnimated:YES];
-                          }
-                          else
-                          {
-                              UIAlertView *alert =[[UIAlertView alloc] initWithTitle:@"提示" message:@"验证码输入错误" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
-                              [alert show];
-                          }
-                      }];
-                 }
-             }];
-        }
-    }
-
+-(RACSignal *)loginSignal{
+    return [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+        [self login:^(BOOL isSuccessful, BmobUser *user, NSError *error) {
+            if (isSuccessful) {
+                [subscriber sendNext:user];
+                [subscriber sendCompleted];
+            }else{
+                [subscriber sendError:error];
+            }
+        }];
+        return nil;
+    }];
 }
+-(void)login:(void (^)(BOOL, BmobUser *, NSError *))block{
+    //查询手机号是否已存在
+    BmobQuery *query =[BmobUser query];
+    [query whereKey:@"mobilePhoneNumber" equalTo:self.phoneNumberTxt.text];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *array, NSError *error)
+     {
+         if (array.count==0)
+         {
+             NSError *err = [NSError errorWithDomain:@"您输入的账号尚未注册,请点击上方注册按钮" code:998 userInfo:nil];
+             block(NO,nil,err);
+             
+         }
+         else if(array.count>0)
+         {
+             [BmobUser loginInbackgroundWithMobilePhoneNumber:self.phoneNumberTxt.text andSMSCode:self.smsCodeTextField.text block:^(BmobUser *user, NSError *error)
+              {
+                  if (user)
+                  {
+                      block(YES,user,nil);
+                      /*
+                      //进入首页
+                      [self.navigationController popViewControllerAnimated:YES];
+                       */
+                  }
+                  else
+                  {
+                      NSError *err =[NSError errorWithDomain:@"验证码输入错误" code:999 userInfo:nil];
+                      block(NO,nil,err);
+                  }
+              }];
+         }
+     }];
+}
+
 //跳转到服务密码登陆页面的方法
 -(void)servicedenglu{
     LoginViewController *login=[[LoginViewController alloc] init];

@@ -19,6 +19,9 @@
 @property (strong,nonatomic) UIView *msgView;
 
 @property (strong,nonatomic) UIView *normalView;
+
+-(void)login:(void (^)(BOOL isSuccessful,BmobUser *user,NSError *error))resultBlock;
+
 @end
 
 @implementation LoginViewController
@@ -29,12 +32,29 @@
 //    self.tabBarController.tabBar.hidden =NO;
 //}
 
+-(RACSignal *)QQDidNotLoginSignal{
+    return [self rac_signalForSelector:@selector(tencentDidNotLogin:) fromProtocol:@protocol(TencentSessionDelegate)];
+}
+
+-(RACSignal *)QQDidNotNetworkSignal{
+    return [self rac_signalForSelector:@selector(tencentDidNotNetWork) fromProtocol:@protocol(TencentSessionDelegate)];
+}
+
+-(RACSignal *)QQLoginSuccessSignal{
+    return [self rac_signalForSelector:@selector(tencentDidLogin) fromProtocol:@protocol(TencentSessionDelegate)];
+}
+
+-(RACSignal *)QQGetUserInfo{
+    return [self rac_signalForSelector:@selector(getUserInfoResponse:) fromProtocol:@protocol(TencentSessionDelegate)];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-//    self.view.backgroundColor=[UIColor colorWithRed:1.000 green:0.984 blue:0.984 alpha:1.000];
+    //    self.view.backgroundColor=[UIColor colorWithRed:1.000 green:0.984 blue:0.984 alpha:1.000];
     self.title=@"登录";
     
     [self creatView];
+    [self RAC];
 }
 //创建子视图
 - (void)creatView{
@@ -93,13 +113,13 @@
     //登陆按钮
     self.loginBtn=[UIButton buttonWithType:UIButtonTypeRoundedRect];
     self.loginBtn.frame=CGRectMake(WIDTH*0.053333333, HEIGHT*0.3898051, WIDTH*0.893333333, HEIGHT*0.05997001);
+    
     [self.loginBtn setTitle:@"登 录" forState:UIControlStateNormal];
-    self.loginBtn.backgroundColor=[UIColor blueColor];
     [self.loginBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.loginBtn addTarget:self action:@selector(denglu) forControlEvents:UIControlEventTouchUpInside];
+    //    [self.loginBtn addTarget:self action:@selector(denglu) forControlEvents:UIControlEventTouchUpInside];
     [self.loginBtn.layer setCornerRadius:10];
     [self.normalView addSubview:self.loginBtn];
-
+    
     //设置短信密码登陆按钮下划线
     NSMutableAttributedString *str1 = [[NSMutableAttributedString alloc] initWithString:@"短信密码登陆"];
     NSRange strRange1 = {0,[str1 length]};
@@ -113,7 +133,6 @@
     [self.messageBtn setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     [self.messageBtn setAttributedTitle:str1 forState:UIControlStateNormal];
     [[self.messageBtn titleLabel] setFont:[UIFont systemFontOfSize:15]];
-    [self.messageBtn addTarget:self action:@selector(messagedenglu) forControlEvents:UIControlEventTouchUpInside];
     [self.normalView addSubview:self.messageBtn];
     
     if ([TencentOAuth iphoneQQInstalled]) {
@@ -125,17 +144,17 @@
         self.oAuth=[[TencentOAuth alloc] initWithAppId:@"1104847098" andDelegate:self];
         //初始化按钮
         self.QQBtn=[UIButton buttonWithType:UIButtonTypeCustom];
-    if (UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad) {
-        self.QQBtn.frame=CGRectMake(self.messageBtn.frame.origin.x, self.messageBtn.frame.size.height+self.messageBtn.frame.origin.y+30, 60.5, 64);
-    }else{
-     self.QQBtn.frame=CGRectMake(self.messageBtn.frame.origin.x, self.messageBtn.frame.size.height+self.messageBtn.frame.origin.y+30, 30.25, 32);   
-    }
-    
+        if (UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad) {
+            self.QQBtn.frame=CGRectMake(self.messageBtn.frame.origin.x, self.messageBtn.frame.size.height+self.messageBtn.frame.origin.y+30, 60.5, 64);
+        }else{
+            self.QQBtn.frame=CGRectMake(self.messageBtn.frame.origin.x, self.messageBtn.frame.size.height+self.messageBtn.frame.origin.y+30, 30.25, 32);
+        }
+        
         [self.QQBtn setImage:[UIImage imageNamed:@"QQ"] forState:UIControlStateNormal];
-        [self.QQBtn addTarget:self action:@selector(loginWithQQ) forControlEvents:UIControlEventTouchUpInside];
+//        [self.QQBtn addTarget:self action:@selector(loginWithQQ) forControlEvents:UIControlEventTouchUpInside];
         [self.normalView addSubview:self.QQBtn];
     }
-
+    
     
     //设置忘记密码登陆按钮下划线
     NSMutableAttributedString *str2 = [[NSMutableAttributedString alloc] initWithString:@"忘记密码"];
@@ -149,7 +168,6 @@
     [self.forgetPasswordBtn setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     [self.forgetPasswordBtn setAttributedTitle:str2 forState:UIControlStateNormal];
     [[self.forgetPasswordBtn titleLabel] setFont:[UIFont systemFontOfSize:15]];
-    [self.forgetPasswordBtn addTarget:self action:@selector(forgetPassword) forControlEvents:UIControlEventTouchUpInside];
     [self.normalView addSubview:self.forgetPasswordBtn];
     
     //背景图片
@@ -176,63 +194,204 @@
     self.hud.detailsLabelText=@"努力加载中";
     self.hud.backgroundColor=[UIColor clearColor];
     self.hud.color=[UIColor clearColor];
+    
 }
--(void)tencentDidLogin{
-    NSDictionary *responseDictionary = @{@"access_token": self.oAuth.accessToken,@"uid":self.oAuth.openId,@"expirationDate":self.oAuth.expirationDate};
-    [BmobUser loginInBackgroundWithAuthorDictionary:responseDictionary platform:BmobSNSPlatformQQ block:^(BmobUser *user, NSError *error) {
-        [user setObject:[[NSUserDefaults standardUserDefaults] stringForKey:@"deviceToken"] forKey:@"deviceToken"];
-        [user updateInBackgroundWithResultBlock:^(BOOL isSuccessful, NSError *error) {
+
+-(void)RAC{
+    [[self.QQBtn rac_signalForControlEvents:UIControlEventTouchUpInside] subscribeNext:^(id x) {
+        NSArray *permissions=@[@"get_user_info",@"get_simple_userinfo",@"add_t"];
+        self.hud.detailsLabelText=@"努力加载中";
+        //显示加载视图
+        [self.hud show:YES];
+        [self.oAuth authorize:permissions inSafari:NO];
+    }];
+    
+    [[self QQDidNotNetworkSignal] subscribeNext:^(id x) {
+        self.hud.mode=MBProgressHUDModeText;
+        self.hud.detailsLabelText=@"网络连接错误，请检查您的网络问题";
+        //隐藏加载视图
+        [self.hud hide:YES afterDelay:2];
+    }];
+    
+    [[self QQDidNotLoginSignal] subscribeNext:^(id x) {
+        self.hud.mode=MBProgressHUDModeText;
+        self.hud.detailsLabelText=@"登陆失败，请重试";
+        //隐藏加载视图
+        [self.hud hide:YES afterDelay:2];
+    }];
+    
+    RACSignal *qqLoginSuccessSignal = [self QQLoginSuccessSignal];
+    
+    [qqLoginSuccessSignal subscribeNext:^(id x) {
+        NSDictionary *responseDictionary = @{@"access_token": self.oAuth.accessToken,@"uid":self.oAuth.openId,@"expirationDate":self.oAuth.expirationDate};
+        [BmobUser loginInBackgroundWithAuthorDictionary:responseDictionary platform:BmobSNSPlatformQQ block:^(BmobUser *user, NSError *error) {
+            [user setObject:[[NSUserDefaults standardUserDefaults] stringForKey:@"deviceToken"] forKey:@"deviceToken"];
+            [user updateInBackgroundWithResultBlock:^(BOOL isSuccessful, NSError *error) {
+                if (isSuccessful) {
+                    [self.oAuth getUserInfo];
+                }
+            }];
+        }];
+        NSLog(@"%@",x);
+    }];
+    
+    RACSignal *getUserInfoSignal = [self QQGetUserInfo];
+    
+    [[getUserInfoSignal map:^id(RACTuple *tuple) {
+        return tuple.first;
+    }] subscribeNext:^(APIResponse *response) {
+        NSDictionary *dic=response.jsonResponse;
+        BmobUser *currentUser=[BmobUser getCurrentUser];
+        [currentUser setObject:dic[@"nickname"] forKey:@"name"];
+        [currentUser setObject:dic[@"figureurl_qq_2"] forKey:@"iconImg"];
+        [currentUser updateInBackgroundWithResultBlock:^(BOOL isSuccessful, NSError *error) {
             if (isSuccessful) {
-                [self.oAuth getUserInfo];
+                //隐藏加载视图
+                [self.hud hide:YES];
+                //进入首页
+                [self.navigationController popViewControllerAnimated:YES];
+                //                                  NSLog(@"登录成功,进入首页");
             }
         }];
     }];
+    
+    [[self.forgetPasswordBtn rac_signalForControlEvents:UIControlEventTouchUpInside] subscribeNext:^(id x) {
+        ForgetPasswordViewController *forget=[[ForgetPasswordViewController alloc] init];
+        [self.navigationController pushViewController:forget animated:YES];
+    }];
+    
+    [[self.messageBtn rac_signalForControlEvents:UIControlEventTouchUpInside] subscribeNext:^(id x) {
+        [self.view bringSubviewToFront:self.msgView];
+    }];
+    
+    [RACObserve(self.tickBtn, selected) subscribeNext:^(id x) {
+        BOOL isRemember = [x boolValue];
+        if (isRemember) {
+            [[NSUserDefaults standardUserDefaults] setObject:self.userNameTxt.text forKey:@"username"];
+            [[NSUserDefaults standardUserDefaults] setObject:self.userPwdTextField.text forKey:@"password"];
+        }else{
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"username"];
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"password"];
+        }
+        NSLog(@"%@",x);
+    }];
+    
+    //    self.tickBtn
+    
+    @weakify(self);
+    RACSignal *usernameRac = [self.userNameTxt.rac_textSignal map:^id(id value) {
+        return @([value length] > 10 ? YES : NO);
+    }];
+    
+    RACSignal *passwordRac = [self.userPwdTextField.rac_textSignal map:^id(id value) {
+        return @(([value length] > 5 && [value length] < 21)? YES : NO);
+    }];
+    
+    RACSignal *mergeSignal = [RACSignal combineLatest:@[usernameRac,passwordRac] reduce:^id(NSNumber *usernameValid,NSNumber *passwordValid){
+        return @([usernameValid boolValue] && [passwordValid boolValue]);
+    }];
+    
+    [mergeSignal subscribeNext:^(id x) {
+        @strongify(self);
+        BOOL success = [x boolValue];
+        if (success) {
+            self.loginBtn.backgroundColor=[UIColor blueColor];
+            self.loginBtn.enabled = YES;
+        }else{
+            self.loginBtn.backgroundColor=[UIColor grayColor];
+            self.loginBtn.enabled = NO;
+        }
+    }];
+    
+    [self loginAct];
 }
--(void)tencentDidNotNetWork{
-    self.hud.mode=MBProgressHUDModeText;
-    self.hud.detailsLabelText=@"网络连接错误，请检查您的网络问题";
-    //隐藏加载视图
-    [self.hud hide:YES afterDelay:1];
-}
--(void)tencentDidNotLogin:(BOOL)cancelled{
-    self.hud.mode=MBProgressHUDModeText;
-    self.hud.detailsLabelText=@"登陆失败，请重试";
-    //隐藏加载视图
-    [self.hud hide:YES afterDelay:1];
-}
--(void)getUserInfoResponse:(APIResponse *)response{
-    NSDictionary *dic=response.jsonResponse;
-    BmobUser *currentUser=[BmobUser getCurrentUser];
-    [currentUser setObject:dic[@"nickname"] forKey:@"name"];
-    [currentUser setObject:dic[@"figureurl_qq_2"] forKey:@"iconImg"];
-    [currentUser updateInBackgroundWithResultBlock:^(BOOL isSuccessful, NSError *error) {
-        if (isSuccessful) {
+
+-(void)loginAct{
+    @weakify(self)
+    [[[[[self.loginBtn rac_signalForControlEvents:UIControlEventTouchUpInside] doNext:^(id x) {
+        @strongify(self);
+        self.hud.mode = MBProgressHUDModeCustomView;
+        self.hud.detailsLabelText=@"努力加载中";
+        [self.hud show:YES];
+        self.loginBtn.enabled = NO;
+    }] flattenMap:^RACStream *(id value) {
+        @strongify(self);
+        return [self signalForNormalLogin];
+    }] deliverOnMainThread] subscribeNext:^(BmobUser *user) {
+        @strongify(self);
+        self.loginBtn.enabled = YES;
+        if (user) {
+            //保存推送所需的deviceToken
+            [user setObject:[[NSUserDefaults standardUserDefaults] stringForKey:@"deviceToken"] forKey:@"deviceToken"];
+            [user updateInBackground];
             //隐藏加载视图
             [self.hud hide:YES];
             //进入首页
             [self.navigationController popViewControllerAnimated:YES];
-            //                                  NSLog(@"登录成功,进入首页");
+        }else{
+            //            self.loginBtn.backgroundColor=[UIColor blueColor];
+            self.loginBtn.enabled = YES;
+            NSLog(@"error");
         }
+        
+    } error:^(NSError *error) {
+        @strongify(self);
+        self.hud.mode = MBProgressHUDModeText;
+        self.loginBtn.enabled = YES;
+        self.hud.detailsLabelText = error.domain;
+        [self.hud hide:YES afterDelay:2];
+        NSLog(@"%@",error);
+        [self loginAct];
     }];
 }
-//打钩的方法
--(void)dagou{
-    if (self.tickBtn.selected==NO) {
-        self.tickBtn.selected=YES;
-        [[NSUserDefaults standardUserDefaults] setObject:@YES forKey:@"isRemember"];
-    }else{
-        self.tickBtn.selected=NO;
-        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"isRemember"];
-    }
+
+-(void)login:(void (^)(BOOL, BmobUser *, NSError *))resultBlock{
+    BmobQuery *query =[BmobUser query];
+    [query whereKey:@"mobilePhoneNumber" equalTo:self.userNameTxt.text];
+    
+    [query findObjectsInBackgroundWithBlock:^(NSArray *array, NSError *error)
+     {
+         if (array.count==0)
+         {
+             NSError *err = [NSError errorWithDomain:@"账号尚未注册" code:955 userInfo:nil];
+             resultBlock(NO,nil,err);
+         }
+         else if(array.count>0)
+         {
+             [BmobUser loginInbackgroundWithAccount:self.userNameTxt.text andPassword:self.userPwdTextField.text block:^(BmobUser *user, NSError *error)
+              {
+                  if (user)
+                  {
+                      resultBlock(YES,user,nil);
+                  }
+                  else
+                  {
+                      NSError *err = [NSError errorWithDomain:@"手机号或密码错误" code:955 userInfo:nil];
+                      resultBlock(YES,nil,err);                  }
+              }];
+         }
+     }];
 }
--(void)loginWithQQ{
-    NSArray *permissions=@[@"get_user_info",@"get_simple_userinfo",@"add_t"];
-    self.hud.detailsLabelText=@"努力加载中";
-    //显示加载视图
-    [self.hud show:YES];
-    [self.oAuth authorize:permissions inSafari:NO];
+
+-(RACSignal *)signalForNormalLogin{
+    @weakify(self);
+    return [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+        //查询手机号是否已存在
+        @strongify(self);
+        [self login:^(BOOL isSuccessful, BmobUser *user, NSError *error) {
+            
+            if (error) {
+                [subscriber sendError:error];
+            }else{
+                [subscriber sendNext:user];
+                [subscriber sendCompleted];
+            }
+        }];
+        
+        return nil;
+    }];
 }
-//跳转到首页页面方法
+/*
 -(void)denglu{
     self.hud.detailsLabelText=@"努力加载中";
     //显示加载视图
@@ -300,12 +459,45 @@
         }
     }
 }
-//跳转到短信密码登陆的方法
--(void)messagedenglu{
-//    MessageLoginViewController *message=[[MessageLoginViewController alloc] init];
-//    [self.navigationController pushViewController:message animated:YES];
-    [self.view bringSubviewToFront:self.msgView];
+*/
+
+-(void)tencentDidNotLogin:(BOOL)cancelled{
+    
 }
+//-(void)getUserInfoResponse:(APIResponse *)response{
+//    NSDictionary *dic=response.jsonResponse;
+//    BmobUser *currentUser=[BmobUser getCurrentUser];
+//    [currentUser setObject:dic[@"nickname"] forKey:@"name"];
+//    [currentUser setObject:dic[@"figureurl_qq_2"] forKey:@"iconImg"];
+//    [currentUser updateInBackgroundWithResultBlock:^(BOOL isSuccessful, NSError *error) {
+//        if (isSuccessful) {
+//            //隐藏加载视图
+//            [self.hud hide:YES];
+//            //进入首页
+//            [self.navigationController popViewControllerAnimated:YES];
+//            //                                  NSLog(@"登录成功,进入首页");
+//        }
+//    }];
+//}
+//打钩的方法
+-(void)dagou{
+    if (self.tickBtn.selected==NO) {
+        self.tickBtn.selected=YES;
+        [[NSUserDefaults standardUserDefaults] setObject:@YES forKey:@"isRemember"];
+    }else{
+        self.tickBtn.selected=NO;
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"isRemember"];
+    }
+}
+//-(void)loginWithQQ{
+//    NSArray *permissions=@[@"get_user_info",@"get_simple_userinfo",@"add_t"];
+//    self.hud.detailsLabelText=@"努力加载中";
+//    //显示加载视图
+//    [self.hud show:YES];
+//    [self.oAuth authorize:permissions inSafari:NO];
+//}
+//跳转到首页页面方法
+
 -(void)normaldenglu{
     [self.view bringSubviewToFront:self.normalView];
 }
@@ -317,12 +509,7 @@
 - (void)registered{
     [self.navigationController pushViewController:[RegisteredViewController new] animated:YES];
 }
-//跳转到到忘记密码页面
-- (void)forgetPassword{
-    ForgetPasswordViewController *forget=[[ForgetPasswordViewController alloc] init];
-    [self.navigationController pushViewController:forget animated:YES];
-    
-}
+
 //隐藏键盘
 -(BOOL)textFieldShouldReturn:(UITextField *)textField{
     if ([textField isFirstResponder]) {
@@ -340,13 +527,13 @@
 }
 
 /*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
+ #pragma mark - Navigation
+ 
+ // In a storyboard-based application, you will often want to do a little preparation before navigation
+ - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+ // Get the new view controller using [segue destinationViewController].
+ // Pass the selected object to the new view controller.
+ }
+ */
 
 @end

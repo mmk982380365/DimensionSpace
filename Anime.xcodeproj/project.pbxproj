@@ -38,7 +38,6 @@
 		43D511EC1BDDFA55002AF0E3 /* AnimeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 43D511EB1BDDFA55002AF0E3 /* AnimeTests.m */; };
 		43D511F61BDDFA6A002AF0E3 /* Podfile in Resources */ = {isa = PBXBuildFile; fileRef = 43D511F51BDDFA6A002AF0E3 /* Podfile */; };
 		5D0766D565097ADAB9BD1227 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F02A7D3B2B85C52E584EDBCB /* libPods.a */; };
-		CB080D1E1BF34656001C3F03 /* TencentOpenApi_IOS_Bundle.bundle in Resources */ = {isa = PBXBuildFile; fileRef = CB080D1C1BF34656001C3F03 /* TencentOpenApi_IOS_Bundle.bundle */; };
 		CB080D231BF34728001C3F03 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB080D221BF34728001C3F03 /* Security.framework */; };
 		CB080D251BF34732001C3F03 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CB080D241BF34732001C3F03 /* libiconv.dylib */; };
 		CB080D271BF3473A001C3F03 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB080D261BF3473A001C3F03 /* SystemConfiguration.framework */; };
@@ -48,7 +47,6 @@
 		CB080D2F1BF34756001C3F03 /* libstdc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CB080D2E1BF34756001C3F03 /* libstdc++.dylib */; };
 		CB080D311BF3475C001C3F03 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CB080D301BF3475C001C3F03 /* libz.dylib */; };
 		CB080D331BF34BB2001C3F03 /* QQ.png in Resources */ = {isa = PBXBuildFile; fileRef = CB080D321BF34BB2001C3F03 /* QQ.png */; };
-		CB080D341BF3504C001C3F03 /* TencentOpenAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB080D1D1BF34656001C3F03 /* TencentOpenAPI.framework */; };
 		CB09ED101BE0EBD600909515 /* WebViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CB09ED0F1BE0EBD600909515 /* WebViewController.m */; };
 		CB2EBC211BE23F8200DEEA7E /* SJAvatarBrowser.m in Sources */ = {isa = PBXBuildFile; fileRef = CB2EBC201BE23F8200DEEA7E /* SJAvatarBrowser.m */; };
 		CB33DC1D1BE33EE000264214 /* SvGifView.m in Sources */ = {isa = PBXBuildFile; fileRef = CB33DC1C1BE33EE000264214 /* SvGifView.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -85,6 +83,8 @@
 		CB6B29991BE8AD1A000FF954 /* FMDatabasePool.m in Sources */ = {isa = PBXBuildFile; fileRef = CB6B29891BE8AD1A000FF954 /* FMDatabasePool.m */; };
 		CB6B299A1BE8AD1A000FF954 /* FMDatabaseQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = CB6B298B1BE8AD1A000FF954 /* FMDatabaseQueue.m */; };
 		CB6B299B1BE8AD1A000FF954 /* FMResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = CB6B298E1BE8AD1A000FF954 /* FMResultSet.m */; };
+		CB6BC26A1C745BC300A56DDE /* TencentOpenApi_IOS_Bundle.bundle in Resources */ = {isa = PBXBuildFile; fileRef = CB6BC2681C745BC300A56DDE /* TencentOpenApi_IOS_Bundle.bundle */; };
+		CB6BC26B1C745BC300A56DDE /* TencentOpenAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB6BC2691C745BC300A56DDE /* TencentOpenAPI.framework */; };
 		CBA693321BE8445F0099D37D /* head.png in Resources */ = {isa = PBXBuildFile; fileRef = CBA693241BE8445F0099D37D /* head.png */; };
 		CBA693331BE8445F0099D37D /* home.png in Resources */ = {isa = PBXBuildFile; fileRef = CBA693251BE8445F0099D37D /* home.png */; };
 		CBA693341BE8445F0099D37D /* people.png in Resources */ = {isa = PBXBuildFile; fileRef = CBA693261BE8445F0099D37D /* people.png */; };
@@ -207,8 +207,6 @@
 		43D511EA1BDDFA55002AF0E3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		43D511EB1BDDFA55002AF0E3 /* AnimeTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AnimeTests.m; sourceTree = "<group>"; };
 		43D511F51BDDFA6A002AF0E3 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; };
-		CB080D1C1BF34656001C3F03 /* TencentOpenApi_IOS_Bundle.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = TencentOpenApi_IOS_Bundle.bundle; sourceTree = "<group>"; };
-		CB080D1D1BF34656001C3F03 /* TencentOpenAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = TencentOpenAPI.framework; sourceTree = "<group>"; };
 		CB080D221BF34728001C3F03 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		CB080D241BF34732001C3F03 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 		CB080D261BF3473A001C3F03 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
@@ -287,6 +285,8 @@
 		CB6B298C1BE8AD1A000FF954 /* FMDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDB.h; sourceTree = "<group>"; };
 		CB6B298D1BE8AD1A000FF954 /* FMResultSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMResultSet.h; sourceTree = "<group>"; };
 		CB6B298E1BE8AD1A000FF954 /* FMResultSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMResultSet.m; sourceTree = "<group>"; };
+		CB6BC2681C745BC300A56DDE /* TencentOpenApi_IOS_Bundle.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = TencentOpenApi_IOS_Bundle.bundle; sourceTree = "<group>"; };
+		CB6BC2691C745BC300A56DDE /* TencentOpenAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = TencentOpenAPI.framework; sourceTree = "<group>"; };
 		CB8DA7481BE1A19600BA7C85 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		CBA693241BE8445F0099D37D /* head.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = head.png; sourceTree = "<group>"; };
 		CBA693251BE8445F0099D37D /* home.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = home.png; sourceTree = "<group>"; };
@@ -375,12 +375,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CB080D341BF3504C001C3F03 /* TencentOpenAPI.framework in Frameworks */,
 				CB080D311BF3475C001C3F03 /* libz.dylib in Frameworks */,
 				CB080D2F1BF34756001C3F03 /* libstdc++.dylib in Frameworks */,
 				CB080D2D1BF3474E001C3F03 /* CoreTelephony.framework in Frameworks */,
 				CB080D2B1BF34747001C3F03 /* libsqlite3.dylib in Frameworks */,
 				CB080D291BF3473F001C3F03 /* CoreGraphics.framework in Frameworks */,
+				CB6BC26B1C745BC300A56DDE /* TencentOpenAPI.framework in Frameworks */,
 				CB080D271BF3473A001C3F03 /* SystemConfiguration.framework in Frameworks */,
 				CB080D251BF34732001C3F03 /* libiconv.dylib in Frameworks */,
 				CB080D231BF34728001C3F03 /* Security.framework in Frameworks */,
@@ -418,8 +418,8 @@
 		438B8B771BDDFF5C008234CE /* 工具 */ = {
 			isa = PBXGroup;
 			children = (
-				CB080D1C1BF34656001C3F03 /* TencentOpenApi_IOS_Bundle.bundle */,
-				CB080D1D1BF34656001C3F03 /* TencentOpenAPI.framework */,
+				CB6BC2681C745BC300A56DDE /* TencentOpenApi_IOS_Bundle.bundle */,
+				CB6BC2691C745BC300A56DDE /* TencentOpenAPI.framework */,
 				CBB32F5C1BE0A2C600A9F36B /* PrefixHeader.pch */,
 				CB6B29741BE8AD10000FF954 /* fmdb */,
 				CB33DC631BE34E6F00264214 /* Reachability */,
@@ -1274,7 +1274,6 @@
 				CBA693931BE84E3E0099D37D /* add.png in Resources */,
 				CBA6933D1BE8445F0099D37D /* 我的足迹.png in Resources */,
 				CB4744331BE9EBE900B3748B /* open.png in Resources */,
-				CB080D1E1BF34656001C3F03 /* TencentOpenApi_IOS_Bundle.bundle in Resources */,
 				43D511DB1BDDFA54002AF0E3 /* Main.storyboard in Resources */,
 				CB4744351BE9EDC300B3748B /* iconfont-tupian.png in Resources */,
 				CB080D331BF34BB2001C3F03 /* QQ.png in Resources */,
@@ -1289,6 +1288,7 @@
 				43D511E01BDDFA54002AF0E3 /* LaunchScreen.xib in Resources */,
 				CB33DC5D1BE34E5300264214 /* MJRefresh.bundle in Resources */,
 				CB33DC211BE342CF00264214 /* loading.gif in Resources */,
+				CB6BC26A1C745BC300A56DDE /* TencentOpenApi_IOS_Bundle.bundle in Resources */,
 				CBA693341BE8445F0099D37D /* people.png in Resources */,
 				43D511F61BDDFA6A002AF0E3 /* Podfile in Resources */,
 				CB33DC1F1BE33F3400264214 /* loading2.gif in Resources */,
@@ -1512,6 +1512,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: qi dong (5K66L6963C)";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -1537,7 +1538,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PROVISIONING_PROFILE = "df5311f6-1122-449f-bec5-4ca892685098";
+				PROVISIONING_PROFILE = "d48df9a7-0369-44dd-bdbe-ae020b70fe88";
 				SDKROOT = iphoneos;
 				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/**";
 			};
@@ -1564,6 +1565,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: qi dong (5K66L6963C)";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -1582,7 +1584,7 @@
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PROVISIONING_PROFILE = "df5311f6-1122-449f-bec5-4ca892685098";
+				PROVISIONING_PROFILE = "d48df9a7-0369-44dd-bdbe-ae020b70fe88";
 				SDKROOT = iphoneos;
 				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/**";
 				VALIDATE_PRODUCT = YES;
@@ -1613,7 +1615,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lamco.Anime1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "df5311f6-1122-449f-bec5-4ca892685098";
+				PROVISIONING_PROFILE = "d48df9a7-0369-44dd-bdbe-ae020b70fe88";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/**";
 			};
@@ -1642,7 +1644,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lamco.Anime1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "df5311f6-1122-449f-bec5-4ca892685098";
+				PROVISIONING_PROFILE = "d48df9a7-0369-44dd-bdbe-ae020b70fe88";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "${SRCROOT}/**";
 			};

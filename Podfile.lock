@@ -1,10 +1,19 @@
 PODS:
   - BmobSDK (1.6.4)
+  - ReactiveCocoa (2.5):
+    - ReactiveCocoa/UI (= 2.5)
+  - ReactiveCocoa/Core (2.5):
+    - ReactiveCocoa/no-arc
+  - ReactiveCocoa/no-arc (2.5)
+  - ReactiveCocoa/UI (2.5):
+    - ReactiveCocoa/Core
 
 DEPENDENCIES:
-  - BmobSDK
+  - BmobSDK (= 1.6.4)
+  - ReactiveCocoa (= 2.5)
 
 SPEC CHECKSUMS:
   BmobSDK: 50aad04eae8c81ccdea6d6125c97e8cec49d8869
+  ReactiveCocoa: e2db045570aa97c695e7aa97c2bcab222ae51f4a
 
 COCOAPODS: 0.39.0
