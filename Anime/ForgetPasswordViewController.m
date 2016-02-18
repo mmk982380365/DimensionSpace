@@ -8,7 +8,11 @@
 
 #import "ForgetPasswordViewController.h"
 
-@interface ForgetPasswordViewController ()
+@interface ForgetPasswordViewController (){
+    NSNumber *smsCode;
+}
+
+-(void)requstSmsCode:(void (^)(int number,NSError *error))block;
 
 @end
 
@@ -20,6 +24,8 @@
     self.title=@"忘记密码";
     
     [self creatView];
+    
+    [self createRAC];
 }
 //创建子视图
 - (void)creatView{
@@ -48,7 +54,7 @@
     self.smsCodeBtn =[UIButton buttonWithType:UIButtonTypeRoundedRect];
     self.smsCodeBtn.frame =CGRectMake(200, 160, KScreenWidth-230, 40);
     [self.smsCodeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.smsCodeBtn.backgroundColor =[UIColor blueColor];
+//    self.smsCodeBtn.backgroundColor =[UIColor blueColor];
     self.smsCodeBtn.layer.cornerRadius =10.0;
     [self.smsCodeBtn setTitle:@"获取验证码" forState:UIControlStateNormal];
     [self.smsCodeBtn addTarget:self action:@selector(requestSMSCode) forControlEvents:UIControlEventTouchUpInside];
@@ -69,7 +75,7 @@
     //注册按钮
     self.submitBtn =[UIButton buttonWithType:UIButtonTypeRoundedRect];
     self.submitBtn.frame =CGRectMake(20, 300, KScreenWidth-40, 40);
-    self.submitBtn.backgroundColor =[UIColor blueColor];
+    
     self.submitBtn.tintColor =[UIColor whiteColor];
     self.submitBtn.layer.cornerRadius =10.0;
     [self.submitBtn setTitle:@"提 交" forState:UIControlStateNormal];
@@ -78,15 +84,112 @@
 
 }
 
+-(void)createRAC{
+    RACSignal *phoneNumberTxtSignal = [self.phoneNumTextField.rac_textSignal map:^id(id value) {
+        return @([self phoneNumberValidate:value]);
+    }];
+    
+    RACSignal *smsTxtSignal = [self.smsCodeTextField.rac_textSignal map:^id(id value) {
+        return @([self smsValidate:value]);
+    }];
+    
+    RACSignal *passwordTxt = [self.userPwdTextField.rac_textSignal map:^id(id value) {
+        return @([self passwordValidate:value]);
+    }];
+    
+    RACSignal *loginCombineSignal = [RACSignal combineLatest:@[phoneNumberTxtSignal,smsTxtSignal,passwordTxt] reduce:^id(NSNumber *phoneValid,NSNumber *smsValid,NSNumber *passwordValid){
+        return @([phoneValid boolValue] && [smsValid boolValue] && [passwordValid boolValue]);
+    }];
+    
+    [[phoneNumberTxtSignal map:^id(id value) {
+        return [value boolValue] ? [UIColor blueColor] : [UIColor grayColor];
+    }] subscribeNext:^(id x) {
+        self.smsCodeBtn.backgroundColor = x;
+    }];
+    
+    [[loginCombineSignal map:^id(id value) {
+        return [value boolValue] ? [UIColor blueColor] : [UIColor grayColor];
+    }] subscribeNext:^(id x) {
+        self.submitBtn.backgroundColor = x;
+    }];
+    
+    [self smsAct];
+    
+    [self submitAct];
+}
+
+-(void)submitAct{
+    
+}
+
+-(void)smsAct{
+    @weakify(self);
+    [[[[self.smsCodeBtn rac_signalForControlEvents:UIControlEventTouchUpInside] flattenMap:^RACStream *(id value) {
+        @strongify(self);
+        return [self smsBtnSignal];
+    }] deliverOnMainThread] subscribeNext:^(id x) {
+        smsCode = x;
+    } error:^(NSError *error) {
+        @strongify(self);
+        MBProgressHUD *hud = [MBProgressHUD HUDForView:self.view];
+        hud.mode = MBProgressHUDModeText;
+        hud.detailsLabelColor=[UIColor grayColor];
+        hud.detailsLabelText=error.domain;
+        hud.backgroundColor=[UIColor clearColor];
+        hud.color=[UIColor clearColor];
+        [hud show:YES];
+        [hud hide:YES afterDelay:2];
+        [self smsAct];
+    }];
+}
+
+-(RACSignal *)smsBtnSignal{
+    return [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+        [self requstSmsCode:^(int number, NSError *error) {
+            if (number == 0) {
+                NSError *err = [NSError errorWithDomain:@"手机号码有误" code:9999 userInfo:nil];
+                [subscriber sendError:err];
+            }else{
+                [subscriber sendNext:@(number)];
+                [subscriber sendCompleted];
+            }
+        }];
+        return nil;
+    }];
+}
+
+-(BOOL)phoneNumberValidate:(NSString *)phoneNumber{
+    return phoneNumber.length == 11 ? YES : NO;
+}
+
+-(BOOL)smsValidate:(NSString *)sms{
+    return sms.length == 6 ? YES : NO;
+}
+
+-(BOOL)passwordValidate:(NSString *)password{
+    return (password.length >= 6 && password.length <= 16) ? YES : NO;
+}
+
+-(void)requstSmsCode:(void (^)(int, NSError *))block{
+    [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:self.phoneNumTextField.text andTemplate:nil resultBlock:^(int number, NSError *error) {
+        if (error) {
+            block(0,error);
+            //                        NSLog(@"%@",error);
+        } else {
+            block(number,nil);
+        }
+    }];
+}
+
 //请求验证码
 -(void)requestSMSCode
 {
-    [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:self.phoneNumTextField.text andTemplate:nil resultBlock:^(int number, NSError *error) {
-        if (error) {
-//                        NSLog(@"%@",error);
-        } else {
-        }
-    }];
+//    [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:self.phoneNumTextField.text andTemplate:nil resultBlock:^(int number, NSError *error) {
+//        if (error) {
+////                        NSLog(@"%@",error);
+//        } else {
+//        }
+//    }];
 //        NSLog(@"发送验证码");
     self.timer =[NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(daojishi) userInfo:nil repeats:YES];
     [self.smsCodeBtn setTitle:@"已发送 60s" forState:UIControlStateNormal];
@@ -108,7 +211,7 @@
     if (self.time==0) {
         [self.smsCodeBtn setAlpha:1.0];
         self.smsCodeBtn.layer.borderWidth =1;
-        [self.smsCodeBtn setBackgroundColor:[UIColor blueColor]];
+//        [self.smsCodeBtn setBackgroundColor:[UIColor blueColor]];
         [self.smsCodeBtn setTitle:@"获取验证码" forState:UIControlStateNormal];
         [self.smsCodeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [self.smsCodeBtn setEnabled:YES];

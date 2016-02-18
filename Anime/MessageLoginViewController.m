@@ -21,6 +21,7 @@
     self.title=@"登录";
 //    self.view.backgroundColor=[UIColor colorWithRed:1.000 green:0.984 blue:0.984 alpha:1.000];
     [self creatView];
+    [self createRAC];
     // Do any additional setup after loading the view.
 }
 //创建子视图
@@ -103,7 +104,7 @@
     [self.forgetPasswordBtn setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     [self.forgetPasswordBtn setAttributedTitle:str2 forState:UIControlStateNormal];
     [[self.forgetPasswordBtn titleLabel] setFont:[UIFont systemFontOfSize:15]];
-    [self.forgetPasswordBtn addTarget:self action:@selector(forgetPassword) forControlEvents:UIControlEventTouchUpInside];
+//    [self.forgetPasswordBtn addTarget:self action:@selector(forgetPassword) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.forgetPasswordBtn];
     
     //背景图片
@@ -111,6 +112,13 @@
     image.image=[UIImage imageNamed:@"bgImage"];
     [self.view addSubview:image];
     
+    
+    
+    
+    
+}
+
+-(void)createRAC{
     RACSignal *phoneNumberSignal = [self.phoneNumberTxt.rac_textSignal map:^id(id value) {
         return @([value length] == 11 ? YES : NO);
     }];
@@ -145,13 +153,13 @@
     
     [[self.sendBtn rac_signalForControlEvents:UIControlEventTouchUpInside] subscribeNext:^(id x) {
         //请求验证码
-//        [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:self.phoneNumberTxt.text andTemplate:nil resultBlock:^(int number, NSError *error) {
-//            if(error){
-//                
-//            } else {
-//                
-//            }
-//        }];
+        //        [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:self.phoneNumberTxt.text andTemplate:nil resultBlock:^(int number, NSError *error) {
+        //            if(error){
+        //
+        //            } else {
+        //
+        //            }
+        //        }];
         self.timer =[NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(daojishi) userInfo:nil repeats:YES];
         
         [self.sendBtn setTitle:@"已发送 60s" forState:UIControlStateNormal];
@@ -162,6 +170,10 @@
         self.time =60;
     }];
     
+    [[self.forgetPasswordBtn rac_signalForControlEvents:UIControlEventTouchUpInside] subscribeNext:^(id x) {
+        ForgetPasswordViewController *forget=[[ForgetPasswordViewController alloc] init];
+        [self.navigationController pushViewController:forget animated:YES];
+    }];
 }
 
 -(void)clickLogin{
@@ -255,12 +267,7 @@
 - (void)registered{
     [self.navigationController pushViewController:[RegisteredViewController new] animated:YES];
 }
-//跳转到到忘记密码页面
-- (void)forgetPassword{
-    ForgetPasswordViewController *forget=[[ForgetPasswordViewController alloc] init];
-    [self.navigationController pushViewController:forget animated:YES];
 
-}
 //隐藏键盘
 -(BOOL)textFieldShouldReturn:(UITextField *)textField{
     if ([textField isFirstResponder]) {

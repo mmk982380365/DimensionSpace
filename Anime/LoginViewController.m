@@ -64,7 +64,7 @@
     self.msgView.backgroundColor=[UIColor colorWithRed:1.000 green:0.984 blue:0.984 alpha:1.000];
     [self.view addSubview:self.msgView];
     [self.msgView addSubview:self.msgVc.view];
-    [self.msgVc.serviceBtn addTarget:self action:@selector(normaldenglu) forControlEvents:UIControlEventTouchUpInside];
+//    [self.msgVc.serviceBtn addTarget:self action:@selector(normaldenglu) forControlEvents:UIControlEventTouchUpInside];
     
     self.normalView=[[UIView alloc] initWithFrame:self.view.bounds];
     self.normalView.backgroundColor=[UIColor colorWithRed:1.000 green:0.984 blue:0.984 alpha:1.000];
@@ -302,7 +302,9 @@
             self.loginBtn.enabled = NO;
         }
     }];
-    
+    [[self.msgVc.serviceBtn rac_signalForControlEvents:UIControlEventTouchUpInside] subscribeNext:^(id x) {
+        [self.view bringSubviewToFront:self.normalView];
+    }];
     [self loginAct];
 }
 
@@ -498,9 +500,9 @@
 //}
 //跳转到首页页面方法
 
--(void)normaldenglu{
-    [self.view bringSubviewToFront:self.normalView];
-}
+//-(void)normaldenglu{
+//    
+//}
 //返回到个人中心页面
 - (void)goBacks{
     [self.navigationController popToRootViewControllerAnimated:YES];
